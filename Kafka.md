@@ -86,6 +86,17 @@
 -   For a topic replication factor of 3, topic data durability can withstand 2 brokers loss.
 -   As a rule, for a replication factor of N, you can permanently lose up to N-1 brokers and still recover your data.
 
+## Zookeeper
+-   Zookeeper manages  brokers (keeps a list of them)
+-   Zookeeper helps in performing leader election for partitions.
+-   Zookeeper sends notifications to kafka in case of changes
+-   kafka 2.x can't work without zookeeper.
+-   Kafka 3.x can work without zookeeper(KIP-500) - using kafka raft.
+-   kafka 4.x will not have zookeeper.
+-   Zookeeper by design operates with an oddnumber of servers (1,3,5,7)
+-   Zookeeper has a leader(writes) the rest of the servers are followers (reads)
+-   Zookeeper doesnot store the consumer offsets with kafka > v0.10
+
 ## Brokers
 -   Brokers hold topic partitions
 -   Brokers receive and serve data
