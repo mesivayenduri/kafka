@@ -24,6 +24,68 @@
 -   If key != null, then all messages for that key will always go the same partition ( with the help of hashig )
 -   A key is typically sent if you need message ordering for a specific field ( ex: sku_id )
 
+## Consumers:
+-   Consumers read data from a topic ( identified by name) - Pull model
+-   Consumers automatically know which brokers to read from
+-   In case of broker failures, consumers know how to recover.
+-   Data is read in order from low to high offset within each partition
+
+## Consumer Groups:
+-   All the consumers in an application read data as a consumer groups.
+-   Each consumer within a group reads from exclusive partitions.
+
+## Consumer offsets:
+-   Kafka stores the offsets at which a consumer groups has been reading.
+-   The offsets committed are in kafka topic named __consumer_offsets
+-   When a consumer in a group has processed data received from kafka, it should be periodically committing the offsets (the kafka broker will write to __consumer_offets, not the group itself)
+-   If a consumer dies, it will be able to read back from where it left off thanks to the committed consumer offsets!
+
+## Delivery semantics for consumers:
+-   By default, Java consumers will automatically commits offsets ( at least once )
+-   There are 3 delivery semantics if you choose to commit manually
+    -   At least once (Usually preferred)
+        -   Offsets are committed after the message is processed.
+        -   If the processing goes wrong, the message will be read again.
+        -   This can result in duplicate processing of messages. Make sure your processing is idempotent.
+    -   At most once
+        -   Offsets are committed as soon as messages are received.
+        -   If the processing goes wrong, some messages will be lost(they won't be read again)
+    -   Exactly Once
+        -   For kafka -> Kafka workflow: use the transaction API (easy with kafka streams API)
+        -   For Kafka -> External System workflows: use an idempotent consumer.
+
+## Kafka Brokers
+-   A kafka cluster is composed of multiple brokers (servers)
+-   Each broker is identified with its ID.
+-   Each broker contain certain topic partitions.
+-   After connecting to a broker ( called bootstrap server ), you will be connected to the entire cluster.
+-   A good number to get started is 3 brokers, but some big clusters have over 1000 brokers.
+
+## Kafka Broker Discovery
+-   Every kafka broker is also called a "Bootstrap server"
+-   That means that you only need to connect to one broker, and the kafka clients will know how to be connected to the entire cluster.
+-   Each broker know about all brokers, topics and partitions ( metadata )
+
+## Topic Replication Factor
+-   Topics should have a replication factor > 1 (usually between 2 and 3)
+-   This way if a broker is down, another broker can server the data.
+
+## Default Producer & Consumer behaviour with leaders
+-   Kafka producers can only write to the leader broker for a partition.
+-   Kafka consumers can only read from the leader broker for a partition.
+-   Since Kafka 2.4, it is possible to configure consumers to read from the closed replica ( Kafka consumers replica fetching feature )
+    This may help improve latency, and also decrease network costs if using in cloud.
+
+## Producer Acknowledgements (ACKS)
+-   Producers can choose to receive the acknowledgements of data writes:
+    -   acks=0 : Producers won't wait for the acknowledgment ( possible data loss )
+    -   acks=1 : Producers will wait for the leader acknowledgement ( limited data loss )
+    -   acks=all : Producers will wait for the leader and follower(replicas) acknowledgement (No data loss)
+
+## Kafka topic durability
+-   For a topic replication factor of 3, topic data durability can withstand 2 brokers loss.
+-   As a rule, for a replication factor of N, you can permanently lose up to N-1 brokers and still recover your data.
+
 ## Brokers
 -   Brokers hold topic partitions
 -   Brokers receive and serve data

@@ -30,7 +30,7 @@
 
 # Zookeeper Architecture Quorum sizing
 -   Zookeeper needs to have a strict majority of servers up to form a strict majority when votes happen
--   Therefor Zookeeper quorums have 1,3,5,7,9,(2N+1) servers
+-   Therefore Zookeeper quorums have 1,3,5,7,9,(2N+1) servers
 -   This allows for 0,1,2,3,4,N Servers to go down.
 
 ### Size:1
