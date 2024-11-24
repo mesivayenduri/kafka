@@ -200,3 +200,51 @@ docker-compose -f zoonavigator-docker-compose.yml up -d
 ```
 
 NOTE: Now you can access zoonavigator within VM and also from your windows host machine
+
+
+
+# KAFKA SETUP
+```bash
+# Add file limits configs - allow to open 100,000 file descriptors
+echo "* hard nofile 100000
+* soft nofile 100000" | sudo tee --append /etc/security/limits.conf
+sudo reboot
+sudo service zookeeper start
+sudo chown -R ubuntu:ubuntu /data/kafka
+
+# edit the config
+rm config/server.properties
+# MAKE SURE TO USE ANOTHER BROKER ID
+nano config/server.properties
+
+# launch kafka - make sure things look okay
+bin/kafka-server-start.sh config/server.properties
+
+# Install Kafka boot scripts
+sudo nano /etc/init.d/kafka
+sudo chmod +x /etc/init.d/kafka
+sudo chown root:root /etc/init.d/kafka
+# you can safely ignore the warning
+sudo update-rc.d kafka defaults
+
+# start kafka
+sudo service kafka start
+# verify it's working
+nc -vz localhost 9092
+# look at the logs
+cat /home/ubuntu/kafka/logs/server.log
+# make sure to fix the __consumer_offsets topic
+
+kafka-console-producer.sh --bootstrap-server kafka2:9092 --topic orders --property "parse.key=true" --property "key.separator=:"
+
+kafka-console-consumer.sh --bootstrap-server kafka1:9092 --topic orders --from-beginning --property "print.key=true" --property "key.separator=:"
+
+
+# DO THE SAME FOR BROKER 3
+
+# After, you should see three brokers here
+bin/zookeeper-shell.sh localhost:2181
+ls /kafka/brokers/ids
+```
+
+
