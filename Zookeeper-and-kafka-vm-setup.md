@@ -119,3 +119,84 @@ nc -vz localhost 2181
 echo "ruok" | nc localhost 2181 ; echo
 # check the logs
 cat logs/zookeeper.out
+
+
+
+# ENABLING ZOONAVIGATOR
+
+```bash
+#!/bin/bash
+sudo apt-get update
+```
+
+## Install packages to allow apt to use a repository over HTTPS:
+```bash
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+
+# Add Docker’s official GPG key:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+# set up the stable repository.
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+# install docker
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-compose
+
+# give ubuntu permissions to execute docker
+sudo usermod -aG docker $(whoami)
+# log out
+exit
+# log back in
+
+# make sure docker is working
+docker run hello-world
+
+# Add hosts entries (mocking DNS) - put relevant IPs here
+echo "172.31.9.1 kafka1
+172.31.9.1 zookeeper1
+172.31.19.230 kafka2
+172.31.19.230 zookeeper2
+172.31.35.20 kafka3
+172.31.35.20 zookeeper3" | sudo tee --append /etc/hosts
+```
+
+NOTE:  Make sure to replace the IPs with actual IPs
+
+## Enable firewall
+```bash
+sudo ufw enable
+sudo ufw allow 8001
+sudo ufw reload
+sudo ufw status
+```
+
+## Deploy Zoonavigator
+
+```bash
+nano zoonavigator-docker-compose.yml
+
+version: '2'
+services:
+  # https://github.com/elkozmon/zoonavigator
+  zoonavigator:
+    image: elkozmon/zoonavigator:latest
+    container_name: zoonavigator
+    network_mode: host
+    environment:
+      HTTP_PORT: 8001
+    restart: always
+
+# Make sure port 8001 is opened on the instance security group
+# copy the zookeeper/zoonavigator-docker-compose.yml file
+docker-compose -f zoonavigator-docker-compose.yml up -d
+```
+
+NOTE: Now you can access zoonavigator within VM and also from your windows host machine
